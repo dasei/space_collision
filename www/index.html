@@ -1,0 +1,22 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Spacecollision</title>
+        <link rel="stylesheet" type="text/css" href="style.css">
+    </head>
+    <body>
+        <div id="star-background-container"></div>
+        <canvas id="canvas-game"></canvas>
+
+        <!-- <button>Join</button> -->
+
+    </body>
+    <script src="/socket.io/socket.io.js"></script> <!--SOCKET.IO library-->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script> <!--JQuery library-->
+    <script src="game-classes.js"></script>
+    <script src="utility.js"></script>
+    <script src="graphics.js"></script>
+    <script src="game-client.js"></script> <!--the game itself-->
+    <script src="star-background.js"></script> <!--script updating the stars, falling down behind the canvas-->
+    <script src="input.js"></script>
+</html>
