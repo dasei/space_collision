@@ -44,6 +44,7 @@ socket.on('player registered', (playerIDNew) => {
 });
 
 socket.on('pls send your gamestate', (amountOfPlayersToRegister, nthSynchronization, playersToRemoveFromGame) => {
+    // console.log("=> 'pls send your gamestate' and create " + amountOfPlayersToRegister + " new players");
     var newPlayerIDs = [];
     var newPlayer;
     for(var i = 0; i < amountOfPlayersToRegister; i++) {
@@ -55,6 +56,8 @@ socket.on('pls send your gamestate', (amountOfPlayersToRegister, nthSynchronizat
         // console.log(gamestate.gameobjects.players);
         // console.log(gamestate.gameobjects.players.length);
     }
+
+    // console.log(gamestate.gameobjects.players);
 
     //remove (disconnected) players
     for(var i = 0; i < playersToRemoveFromGame.length; i++) {
@@ -81,10 +84,7 @@ var deltaTimeSeconds = 0;
 var deltaTimeLoopCycleFinishedLast = undefined;
 setTimeout(gameLoop);
 function gameLoop() {
-
-    if(getPlayer() != null)
-        console.log(getPlayer().keyRegister[87]);
-
+    
     //look into keyregisters of all players and process their movements
     for(var playerD of gamestate.gameobjects.players) {
         // console.log(player.keyRegister[87]);

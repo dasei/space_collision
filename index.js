@@ -27,11 +27,11 @@ io.on('connection', (socket) => {
     // //send client size of game
     // socket.emit('gamesize', gameserver_module.getGamestate().gameWidth, gameserver_module.getGamestate().gameHeight);
     
-    var playerID;
-
+    
     //put the client/player in the playersQueue
     clientsSocketQueue.push(socket);
-
+    
+    var playerID;
     socket.on('my playerID is', (myPlayerID) => {
         playerID = myPlayerID;
     });
@@ -43,13 +43,15 @@ io.on('connection', (socket) => {
     //synchronization (requested by gamestateSynchronization() (on server) loop). The gamestate received should be passed to all other clients
     socket.on('this is my master gamestate', (gamestate_master, newPlayerIDs, nthSynchronization) => {        
         // check if there was already a newer version of gamestate synchronized
-        if(highestSynchronizationIndexAccepted >= nthSynchronization)
+        if(highestSynchronizationIndexAccepted >= nthSynchronization) {
+            console.log("skipping sent gamestate");
             return;
+        }
         highestSynchronizationIndexAccepted = nthSynchronization;
         console.log("highestSynchronizationIndexAccepted: " + highestSynchronizationIndexAccepted);
         socket.broadcast.emit('master gamestate override', gamestate_master);        
 
-        console.log("sync ['this is my master gamestate' event sent to server]");
+        // console.log("sync ['this is my master gamestate' event sent to server]");
 
         //tell every new client, which playerID is his
         var client;
@@ -57,6 +59,7 @@ io.on('connection', (socket) => {
             client = clientsSocketQueueWaitingForPlayerID.pop();
             console.log("completely registered player: " + newPlayerIDs[i]);
             client.emit('player registered', newPlayerIDs[i]);
+            console.log("emitting player id '" + newPlayerIDs[i] + "'");
 
             // //diesem socket seinen player zuweisen
             // if(client == socket) {
@@ -73,16 +76,16 @@ io.on('connection', (socket) => {
 });
 
 //synchronization loop
-var highestSynchronizationIndexAccepted = 0;
+var highestSynchronizationIndexAccepted = -1;
 var synchronizationsRequested = 0;
-setTimeout(gamestateSynchronization, 100);
+setTimeout(gamestateSynchronization, 1000);
 function gamestateSynchronization() {
     //ask on client to send his current complete gamestate
     // and gently ask him to create a specific amount of new players
     var clientMaster = Object.values(io.sockets.sockets)[0];
     // TODO derzeitiges Problem: Wenn der User F5 drückt, dann wird der alte user trotzdem nochmal fürs synchronizen an dieser Stelle hier genommen. Da der aber nichtmehr antwortet, verläuft sich das ganze im Sand => 1. automatisches retryen => 2. das Problem auch tatsächlich lösen 
     if(clientMaster == undefined) {
-        setTimeout(gamestateSynchronization, 500);
+        setTimeout(gamestateSynchronization, 5000);
         console.log("no connected socket found for synchronization");
         return;
     }
@@ -90,13 +93,17 @@ function gamestateSynchronization() {
     // console.log("socket still exists");
 
     // console.log(clientsSocketQueue);
-    clientMaster.emit('pls send your gamestate', clientsSocketQueue.length, synchronizationsRequested, playersToRemoveFromGame);
-    synchronizationsRequested++;
-    playersToRemoveFromGame = [];
+    console.log("players to create: " + clientsSocketQueue.length);
+    console.log("players waiting for id: " + clientsSocketQueueWaitingForPlayerID.length);
 
     for(var client of clientsSocketQueue.values())
         clientsSocketQueueWaitingForPlayerID.push(client);
+    clientMaster.emit('pls send your gamestate', clientsSocketQueue.length, synchronizationsRequested, playersToRemoveFromGame);
     clientsSocketQueue = [];
+
+    synchronizationsRequested++;
+    playersToRemoveFromGame = [];
+
     // => client will answer with 'this is my master gamestate'
 
     setTimeout(gamestateSynchronization, 2000);

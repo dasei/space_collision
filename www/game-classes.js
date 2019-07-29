@@ -49,7 +49,7 @@ class Player extends Spaceship {
     processInputs(deltaTimeSeconds) {
         // pro/retrograde acceleration
         if(this.keyRegister[87]) { //W
-            console.log("W");
+            // console.log("W");
             this.speedX += Math.sin(this.orientation) * this.boosterStrengthPrograde * deltaTimeSeconds;
             this.speedY += Math.cos(this.orientation) * this.boosterStrengthPrograde * deltaTimeSeconds;
         } else if(this.keyRegister[83]) { //S
