@@ -10,23 +10,24 @@ function drawFrame() {
     ctx.scale(canvas_scale_up, canvas_scale_up);
     //#############
     
-    
+    ctx.beginPath();
     ctx.lineWidth = 1/canvas_scale_up;
     ctx.strokeStyle = "#FFFFFF";
     //player
     // console.log("players: " + gamestate.gameobjects.players.length);
-    ctx.beginPath();
     for(var playerObj of gamestate.gameobjects.players) {
+        console.log(ctx.strokeStyle);
         drawPlayer(ctx, playerObj);
     }
     ctx.stroke();
+    ctx.beginPath();
     //projectiles    
     let rotation;
     for(var projectile of gamestate.gameobjects.projectiles) {
         ctx.translate(projectile.posX, projectile.posY);
+        ctx.strokeStyle = PROJECTILE_DATA[projectile.projectileType].color;
         switch(projectile.projectileType) {            
             case 'laser':
-                ctx.fillStyle = "#0000FF";
                 rotation = Math.atan2(projectile.speedY, projectile.speedX) + (Math.PI/2);
                 ctx.rotate(rotation);
                 ctx.moveTo(0, 1);
@@ -38,6 +39,9 @@ function drawFrame() {
     }
     ctx.stroke();
 
+    //draw particles
+    drawParticles(ctx);
+    
     //TODO pro und retrograde richtung am Bidlschirmrand anzeigen
     drawNavBall(ctx);
     drawControlEdgeNodes(ctx);
@@ -51,9 +55,9 @@ function drawPlayer(ctx, player) {
     ctx.translate(player.posX, player.posY);
     ctx.rotate(-player.orientation);
     
-    ctx.moveTo(0, 3);
-    ctx.lineTo(2, -3);
-    ctx.lineTo(-2, -3);
+    ctx.moveTo(0, 4);
+    ctx.lineTo(2, -2);
+    ctx.lineTo(-2, -2);
     ctx.closePath();
     // ctx.stroke();
 
@@ -142,4 +146,15 @@ function drawControlEdgeNodes(ctx) {
 
 
     ctx.translate(-gameWidth/2, -(gameHeight-navBallRadius));
+}
+
+function drawParticles(ctx) {
+    for(var particle of gamestateLocal.gameobjects.particles) {
+        if(!particle.visible)
+            continue;
+        ctx.fillStyle = particle.color;
+        ctx.globalAlpha = particle.alpha;
+        ctx.fillRect(particle.posX, particle.posY, 1, 1);        
+    }
+    ctx.globalAlpha = 1;
 }

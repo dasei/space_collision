@@ -4,12 +4,15 @@ function updateCanvasSize() {
     if(gamestate.gameWidth != 0 && gamestate.gameHeight != 0) {
         canvas_scale_up = Math.max(1, Math.floor(window.innerHeight / gamestate.gameHeight));
         
-        document.getElementById('canvas-game').width = gamestate.gameWidth * canvas_scale_up;
-        document.getElementById('canvas-game').height = gamestate.gameHeight * canvas_scale_up;
-        $('#canvas-game').width(gamestate.gameWidth * canvas_scale_up);
-        $('#canvas-game').height(gamestate.gameHeight * canvas_scale_up);
+        //only update canvas size values, if it would change something. Updating them for no reason makes the canvas 'blink' (at least when context.fillRect() is used)
+        if(document.getElementById('canvas-game').width != gamestate.gameWidth * canvas_scale_up) {            
+            document.getElementById('canvas-game').width = gamestate.gameWidth * canvas_scale_up;
+            document.getElementById('canvas-game').height = gamestate.gameHeight * canvas_scale_up;
+            $('#canvas-game').width(gamestate.gameWidth * canvas_scale_up);
+            $('#canvas-game').height(gamestate.gameHeight * canvas_scale_up);
+        }
     }
-    setTimeout(updateCanvasSize, 500);
+    setTimeout(updateCanvasSize, 5000);
 }
 
 //   #######   GAMESTATE   ######
@@ -19,6 +22,11 @@ var gamestate = {
     gameobjects: {
         players: [],
         projectiles: []
+    }
+};
+var gamestateLocal = {
+    gameobjects: {
+        particles: []
     }
 };
 
@@ -48,7 +56,7 @@ socket.on('pls send your gamestate', (amountOfPlayersToRegister, nthSynchronizat
     var newPlayerIDs = [];
     var newPlayer;
     for(var i = 0; i < amountOfPlayersToRegister; i++) {
-        newPlayer = new Player(0, 0, generateRandomPlayerID());
+        newPlayer = new Player(20, 20, generateRandomPlayerID());
         newPlayerIDs[i] = newPlayer.id;
         gamestate.gameobjects.players.push(newPlayer);
         // console.log("pushing: ");
@@ -84,7 +92,7 @@ var deltaTimeSeconds = 0;
 var deltaTimeLoopCycleFinishedLast = undefined;
 setTimeout(gameLoop);
 function gameLoop() {
-    
+
     //look into keyregisters of all players and process their movements
     for(var playerD of gamestate.gameobjects.players) {
         // console.log(player.keyRegister[87]);
@@ -96,6 +104,15 @@ function gameLoop() {
         if(!gamestate.gameobjects.hasOwnProperty(gameobjectArrayKey))
             continue;        
         gamestate.gameobjects[gameobjectArrayKey].forEach(element => {
+            element.updatePosition(deltaTimeSeconds);
+        });
+    };
+
+    //update gamestateLocal
+    for(var gameobjectArrayKey in gamestateLocal.gameobjects) {
+        if(!gamestateLocal.gameobjects.hasOwnProperty(gameobjectArrayKey))
+            continue;        
+        gamestateLocal.gameobjects[gameobjectArrayKey].forEach(element => {
             element.updatePosition(deltaTimeSeconds);
         });
     };

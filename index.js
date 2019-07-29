@@ -48,7 +48,7 @@ io.on('connection', (socket) => {
             return;
         }
         highestSynchronizationIndexAccepted = nthSynchronization;
-        console.log("highestSynchronizationIndexAccepted: " + highestSynchronizationIndexAccepted);
+        // console.log("highestSynchronizationIndexAccepted: " + highestSynchronizationIndexAccepted);
         socket.broadcast.emit('master gamestate override', gamestate_master);        
 
         // console.log("sync ['this is my master gamestate' event sent to server]");
@@ -85,7 +85,7 @@ function gamestateSynchronization() {
     var clientMaster = Object.values(io.sockets.sockets)[0];
     // TODO derzeitiges Problem: Wenn der User F5 drückt, dann wird der alte user trotzdem nochmal fürs synchronizen an dieser Stelle hier genommen. Da der aber nichtmehr antwortet, verläuft sich das ganze im Sand => 1. automatisches retryen => 2. das Problem auch tatsächlich lösen 
     if(clientMaster == undefined) {
-        setTimeout(gamestateSynchronization, 5000);
+        setTimeout(gamestateSynchronization, 2000);
         console.log("no connected socket found for synchronization");
         return;
     }
@@ -93,8 +93,8 @@ function gamestateSynchronization() {
     // console.log("socket still exists");
 
     // console.log(clientsSocketQueue);
-    console.log("players to create: " + clientsSocketQueue.length);
-    console.log("players waiting for id: " + clientsSocketQueueWaitingForPlayerID.length);
+    // console.log("players to create: " + clientsSocketQueue.length);
+    // console.log("players waiting for id: " + clientsSocketQueueWaitingForPlayerID.length);
 
     for(var client of clientsSocketQueue.values())
         clientsSocketQueueWaitingForPlayerID.push(client);

@@ -79,6 +79,7 @@ class Player extends Spaceship {
             if(timeNow > this.shootingCooldownLastShot + this.shootingCooldownMillis || this.shootingCooldownLastShot == null) {
                 this.shootingCooldownLastShot = timeNow;
                 gamestate.gameobjects.projectiles.push(new Projectile(this.posX, this.posY, Math.sin(this.orientation)*30, Math.cos(this.orientation)*30, 'laser', this));                
+                // registerParticle(new Particle(this.posX, this.posY, 3, this.speedX*4, this.speedY*4, Math.PI/4, '#00FFFF', 0.2));
             }
         }
     }
@@ -103,10 +104,57 @@ class Projectile extends GameObject {
     updatePosition(deltaTimeSeconds) {
         super.updatePosition(deltaTimeSeconds);
 
+        // check if this particle has outlived his livespan
         this.timeLivedSeconds += deltaTimeSeconds;
         if(this.timeLivedSeconds > this.lifetimeSeconds) {
             gamestate.gameobjects.projectiles.splice(
                 gamestate.gameobjects.projectiles.indexOf(this), 1);
+darklingrate/alpha is not doing anything in the line below
+            for(var i = 0; i < 3; i++) {
+                registerParticle(new Particle(this.posX, this.posY, 0, this.speedX, this.speedY, 1, PROJECTILE_DATA[this.projectileType].color))
+            }
         }
+    }
+}
+const PROJECTILE_DATA = {
+    'laser': {
+        color: '#00FFFF',
+        lifetimeSeconds: 1.5
+    },
+    'default': {
+        color: '#FFFFFF',
+        lifetimeSeconds: 0.5
+    }
+}
+
+class Particle extends GameObject{
+    /**
+     * @param {number} spreadRadius radius of sphere around x, y in which the Particle should be placed
+     * @param {string} color color of this particle as in '#1818FF'
+     */
+    constructor(x, y, spreadRadius, speedX, speedY, speedDirectionSpreadRangeHalfRadians, color, darklingRatePerSecond) {
+        super(
+            x + (Math.random()*spreadRadius*2) - spreadRadius,
+            y + (Math.random()*spreadRadius*2) - spreadRadius
+        );
+
+        var speed = Math.sqrt((speedX*speedX)+(speedY*speedY));
+        var newSpeedDirection = Math.atan2(speedX, speedY) + (Math.random()*speedDirectionSpreadRangeHalfRadians*2) - speedDirectionSpreadRangeHalfRadians;
+
+        this.speedX = Math.sin(newSpeedDirection)*speed;
+        this.speedY = Math.cos(newSpeedDirection)*speed;
+        this.alpha = 1;
+        this.color = color;
+        this.visible = true;
+        this.darklingRatePerSecond = darklingRatePerSecond;
+    }
+    updatePosition(deltaTimeSeconds) {
+        super.updatePosition(deltaTimeSeconds);
+
+        if(!this.visible)
+            return;
+        this.alpha -= this.darklingRatePerSecond*deltaTimeSeconds;
+        if(this.alpha <= 0)
+            this.visible = false;
     }
 }

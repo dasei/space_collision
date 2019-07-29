@@ -38,3 +38,39 @@ function castAllObjects(gamestate) {
     }
     return gamestate;
 }
+
+function registerParticle(particle) {
+    gamestateLocal.gameobjects.particles.push(particle);
+}
+
+// /**
+//  * @param {number} spreadRadius radius of sphere around x, y in which the Particle should be placed
+//  * @param {number} speedSpreadPercX percentage of speedRandomization; 0.0 => no randmization; 0.5 => speedX in range of speedX*0.5 to speedX*1.5
+//  * @param {number} speedSpreadPercY percentage of speedRandomization; 0.0 => no randmization; 0.5 => speedY in range of speedY*0.5 to speedY*1.5
+//  * @param {string} color color of this particle as in '#1818FF'
+//  */
+// function generateParticle(x, y, spreadRadius, speedX, speedY, speedDirectionSpreadRangeHalfRadians, color, darklingRatePerSecond) {
+    
+    
+//     gamestateLocal.gameobjects.particles.push({
+//             posX: x + (Math.random()*spreadRadius*2) - spreadRadius,
+//             posY: y + (Math.random()*spreadRadius*2) - spreadRadius,
+//             speedX: Math.sin(newSpeedDirection)*speed,
+//             speedY: Math.cos(newSpeedDirection)*speed,
+//             alpha: 1,
+//             color: color,
+//             visible: true,
+//             test: "woop",
+//             updatePosition: (deltaTimeSeconds) => {
+//                 console.log("visible " + this);
+//                 if(!this.visible)
+//                     return;
+//                 this.posX += this.speedX*deltaTimeSeconds;
+//                 this.posY += this.speedY*deltaTimeSeconds;
+//                 this.alpha -= darklingRatePerSecond*deltaTimeSeconds;
+//                 if(this.alpha <= 0)
+//                     this.visible = false;
+//                 // console.log(this.alpha);
+//             }
+//     });
+// }
