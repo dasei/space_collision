@@ -16,7 +16,7 @@ function drawFrame() {
     //player
     // console.log("players: " + gamestate.gameobjects.players.length);
     for(var playerObj of gamestate.gameobjects.players) {
-        console.log(ctx.strokeStyle);
+        // console.log(ctx.strokeStyle);
         drawPlayer(ctx, playerObj);
     }
     ctx.stroke();
@@ -151,10 +151,15 @@ function drawControlEdgeNodes(ctx) {
 function drawParticles(ctx) {
     for(var particle of gamestateLocal.gameobjects.particles) {
         if(!particle.visible)
-            continue;
+        continue;
         ctx.fillStyle = particle.color;
         ctx.globalAlpha = particle.alpha;
-        ctx.fillRect(particle.posX, particle.posY, 1, 1);        
+        
+        ctx.beginPath();
+        ctx.arc(particle.posX, particle.posY, 1/canvas_scale_up, 0, Math.PI*2);
+        ctx.fill();
+
+        // ctx.fillRect(particle.posX, particle.posY, 1, 1);        
     }
     ctx.globalAlpha = 1;
 }

@@ -31,14 +31,73 @@ class Spaceship extends GameObject {
 
         this.shootingCooldownMillis = 100;
         this.shootingCooldownLastShot = null;
+
+        this.assistantActive = false;
+        this.assistantMeta = {
+            type: null
+        };
     }
     updatePosition(deltaTimeSeconds) {
         super.updatePosition(deltaTimeSeconds);
+        
+        //assistants
+        if(this.assistantActive === true) {            
+            switch(this.assistantMeta.type) {
+                case ASSISTANT_TYPES.follow_direction:
+                    //current direction of reaction wheels                    
+                    var currentWheelDirection = this.reactionWheelsSpeed > 0 ? 1 : this.reactionWheelsSpeed < 0 ? -1 : 0;
+                    //current difference of target and currentOrientation
+                    var difference;
+                    var target;
+                    switch(this.assistantMeta.direction) {
+                        case 'prograde':
+                            target = Math.atan2(this.speedX, this.speedY);
+                            break;
+                        default:
+                            target = 0;
+                            break;
+                    }
+                    if(this.keyRegister == undefined || ( !this.keyRegister[65] && !this.keyRegister[68])) {
+                        target %= Math.PI*2;
+                        var current = this.orientation % (Math.PI*2);
+                        // console.log(current + ", " + target);
+                        difference = (target - current) % (Math.PI*2);
+                        // var speedDelta = difference * this.reactionWheelsAcceleration * deltaTimeSeconds;
+                        // this.reactionWheelsSpeed += speedDelta;
+                    }
+
+                    //potentially restart entire maneuver
+                    if(difference != undefined && (this.assistantMeta.wheelDirection == undefined || this.assistantMeta.wheelDirection != currentWheelDirection)) {
+                        //restart steering maneuver
+                        this.assistantMeta.wheelDirection = currentWheelDirection;
+                        this.assistantMeta.maneuverDifferenceStart = difference;
+                    }
+
+                    console.log(difference + ", " + this.assistantMeta.maneuverDifferenceStart);
+
+                    //check if assistant should deacc or accelerate
+                    if(difference != undefined) {
+                        if(Math.abs(difference) > Math.abs(this.assistantMeta.maneuverDifferenceStart)/2) {
+                            //accelerate
+                            console.log("acc");
+                            this.reactionWheelsSpeed += Math.sign(difference) * this.reactionWheelsAcceleration * deltaTimeSeconds;
+                        }else{
+                            console.log("de");
+                            this.reactionWheelsSpeed -= Math.sign(difference) * this.reactionWheelsAcceleration * deltaTimeSeconds;
+                        }
+                    }
+                    
+            }
+        }
         
         //reaction wheels
         this.orientation += (this.reactionWheelsSpeed * this.reactionWheelsMass * deltaTimeSeconds) / this.mass;        
     };
 }
+        
+const ASSISTANT_TYPES = {
+    follow_direction: "1"
+};
 
 class Player extends Spaceship {
     constructor(posX, posY, id) {
@@ -63,9 +122,11 @@ class Player extends Spaceship {
         } else if(this.keyRegister[68]) { //d
             this.reactionWheelsSpeed -= this.reactionWheelsAcceleration * deltaTimeSeconds * (this.reactionWheelsSpeed > 0 ? 2 : 1);
         } else {
-            this.reactionWheelsSpeed += (this.reactionWheelsSpeed < 0 ? +1 : -1) * this.reactionWheelsAcceleration * deltaTimeSeconds;
-            if(Math.abs(this.reactionWheelsSpeed) < this.reactionWheelsAcceleration * deltaTimeSeconds)
-                this.reactionWheelsSpeed * 0.5;
+            if(this.assistantActive == false || this.assistantMeta.type != ASSISTANT_TYPES.follow_direction) {
+                this.reactionWheelsSpeed += (this.reactionWheelsSpeed < 0 ? +1 : -1) * this.reactionWheelsAcceleration * deltaTimeSeconds;
+                if(Math.abs(this.reactionWheelsSpeed) < this.reactionWheelsAcceleration * deltaTimeSeconds)
+                    this.reactionWheelsSpeed * 0.5;
+            }
         }
         //min max reaction wheel speed
         this.reactionWheelsSpeed = Math.max(-this.reactionWheelsSpeedMax, 
@@ -81,6 +142,15 @@ class Player extends Spaceship {
                 gamestate.gameobjects.projectiles.push(new Projectile(this.posX, this.posY, Math.sin(this.orientation)*30, Math.cos(this.orientation)*30, 'laser', this));                
                 // registerParticle(new Particle(this.posX, this.posY, 3, this.speedX*4, this.speedY*4, Math.PI/4, '#00FFFF', 0.2));
             }
+        }
+
+        //assistant
+        if(this.keyRegister[67]) { //c
+            this.assistantActive = true;
+            this.assistantMeta.type = ASSISTANT_TYPES.follow_direction;
+            this.assistantMeta.direction = 'prograde';
+        } else if(this.keyRegister[86]) {  //v
+            this.assistantActive = false;
         }
     }
 }
@@ -109,9 +179,8 @@ class Projectile extends GameObject {
         if(this.timeLivedSeconds > this.lifetimeSeconds) {
             gamestate.gameobjects.projectiles.splice(
                 gamestate.gameobjects.projectiles.indexOf(this), 1);
-darklingrate/alpha is not doing anything in the line below
             for(var i = 0; i < 3; i++) {
-                registerParticle(new Particle(this.posX, this.posY, 0, this.speedX, this.speedY, 1, PROJECTILE_DATA[this.projectileType].color))
+                registerParticle(new Particle(this.posX, this.posY, 0, this.speedX, this.speedY, 0.5, PROJECTILE_DATA[this.projectileType].color, 1))
             }
         }
     }
@@ -150,10 +219,13 @@ class Particle extends GameObject{
     }
     updatePosition(deltaTimeSeconds) {
         super.updatePosition(deltaTimeSeconds);
+        
+        // console.log(this.alpha);
 
         if(!this.visible)
             return;
         this.alpha -= this.darklingRatePerSecond*deltaTimeSeconds;
+        console.log(this.darklingRatePerSecond);
         if(this.alpha <= 0)
             this.visible = false;
     }
